@@ -474,9 +474,19 @@ function attachSectionHandlers(section) {
     // Terminal handlers
     if (section === 'terminal') {
         document.querySelectorAll('[data-cmd]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const cmd = btn.getAttribute('data-cmd');
                 logToConsole('info', `Ejecutando: ${cmd}`);
+                try {
+                    const result = await ipcRenderer.invoke('terminal-execute-command', cmd);
+                    if (result && result.output) {
+                        logToConsole('info', result.output);
+                    } else {
+                        logToConsole('success', `Comando "${cmd}" ejecutado`);
+                    }
+                } catch (error) {
+                    logToConsole('error', `Error ejecutando comando "${cmd}": ${error.message}`);
+                }
             });
         });
     }
