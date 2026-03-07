@@ -1,9 +1,42 @@
 const adb = require('adbkit');
 const usb = require('usb-detection');
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const { promisify } = require('util');
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// Validates that a device ID contains only safe characters (alphanumeric, colon, dot, hyphen, underscore)
+// ADB device IDs can be: serial numbers (alphanumeric), IP:port (e.g. 192.168.1.1:5555),
+// emulator names (emulator-5554), and iOS UDIDs (hex strings with hyphens)
+function validateDeviceId(deviceId) {
+    if (!deviceId || typeof deviceId !== 'string') {
+        throw new Error('Invalid device ID');
+    }
+    if (!/^[a-zA-Z0-9:.\-_]+$/.test(deviceId)) {
+        throw new Error('Device ID contains invalid characters');
+    }
+}
+
+// Validates a single command argument using an allowlist of safe characters
+function validateArg(arg) {
+    // Allow alphanumeric, hyphen, underscore, dot, slash, equals, and at-sign
+    // These cover common adb/fastboot subcommands and their arguments
+    if (!/^[a-zA-Z0-9\-_.\/=@]+$/.test(arg)) {
+        throw new Error(`Command argument contains invalid characters: ${arg}`);
+    }
+}
+
+// Splits a command string into an array of validated arguments
+function splitCommand(command) {
+    if (!command || typeof command !== 'string') {
+        throw new Error('Invalid command');
+    }
+    const args = command.trim().split(/\s+/);
+    for (const arg of args) {
+        validateArg(arg);
+    }
+    return args;
+}
 
 class DeviceManager {
     constructor() {
@@ -141,13 +174,14 @@ class DeviceManager {
 
     async detectiOSDevices() {
         try {
-            const { stdout } = await execAsync('idevice_id -l');
+            const { stdout } = await execFileAsync('idevice_id', ['-l']);
             const deviceIds = stdout.trim().split('\n').filter(id => id);
 
             const iosDevices = [];
             for (const deviceId of deviceIds) {
                 try {
-                    const { stdout: infoOutput } = await execAsync(`ideviceinfo -u ${deviceId}`);
+                    validateDeviceId(deviceId);
+                    const { stdout: infoOutput } = await execFileAsync('ideviceinfo', ['-u', deviceId]);
                     const info = this.parseiOSInfo(infoOutput);
 
                     iosDevices.push({
@@ -190,7 +224,7 @@ class DeviceManager {
 
     async detectFastbootDevices() {
         try {
-            const { stdout } = await execAsync('fastboot devices');
+            const { stdout } = await execFileAsync('fastboot', ['devices']);
             const lines = stdout.trim().split('\n').filter(line => line);
 
             return lines.map((line, index) => {
@@ -219,21 +253,25 @@ class DeviceManager {
         if (!device) throw new Error('Device not found');
 
         if (device.type === 'android') {
-            const modes = {
-                'system': 'adb reboot',
-                'bootloader': 'adb reboot bootloader',
-                'recovery': 'adb reboot recovery',
-                'fastboot': 'adb reboot bootloader',
-                'download': 'adb reboot download'
+            validateDeviceId(deviceId);
+            const modeArgs = {
+                'system': ['reboot'],
+                'bootloader': ['reboot', 'bootloader'],
+                'recovery': ['reboot', 'recovery'],
+                'fastboot': ['reboot', 'bootloader'],
+                'download': ['reboot', 'download']
             };
 
-            await execAsync(`${modes[mode] || modes.system} -s ${deviceId}`);
+            const args = ['-s', deviceId, ...(modeArgs[mode] || modeArgs.system)];
+            await execFileAsync('adb', args);
         }
     }
 
     async executeADBCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
+            validateDeviceId(deviceId);
+            const cmdArgs = splitCommand(command);
+            const { stdout, stderr } = await execFileAsync('adb', ['-s', deviceId, ...cmdArgs]);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
@@ -242,7 +280,9 @@ class DeviceManager {
 
     async executeFastbootCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
+            validateDeviceId(deviceId);
+            const cmdArgs = splitCommand(command);
+            const { stdout, stderr } = await execFileAsync('fastboot', ['-s', deviceId, ...cmdArgs]);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
