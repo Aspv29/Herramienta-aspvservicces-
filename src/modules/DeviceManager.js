@@ -214,25 +214,33 @@ class DeviceManager {
         return this.devices.get(deviceId);
     }
 
+    validateDeviceId(deviceId) {
+        if (!deviceId || !/^[a-zA-Z0-9._:-]+$/.test(deviceId) || deviceId.length > 64) {
+            throw new Error('Invalid device ID');
+        }
+    }
+
     async rebootDevice(deviceId, mode = 'system') {
+        this.validateDeviceId(deviceId);
         const device = this.devices.get(deviceId);
         if (!device) throw new Error('Device not found');
 
         if (device.type === 'android') {
             const modes = {
-                'system': 'adb reboot',
-                'bootloader': 'adb reboot bootloader',
-                'recovery': 'adb reboot recovery',
-                'fastboot': 'adb reboot bootloader',
-                'download': 'adb reboot download'
+                'system': 'reboot',
+                'bootloader': 'reboot bootloader',
+                'recovery': 'reboot recovery',
+                'fastboot': 'reboot bootloader',
+                'download': 'reboot download'
             };
 
-            await execAsync(`${modes[mode] || modes.system} -s ${deviceId}`);
+            await execAsync(`adb -s ${deviceId} ${modes[mode] || modes.system}`);
         }
     }
 
     async executeADBCommand(deviceId, command) {
         try {
+            this.validateDeviceId(deviceId);
             const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
@@ -242,6 +250,7 @@ class DeviceManager {
 
     async executeFastbootCommand(deviceId, command) {
         try {
+            this.validateDeviceId(deviceId);
             const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
