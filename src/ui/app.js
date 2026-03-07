@@ -45,16 +45,36 @@ function updateDeviceStatus(devices) {
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.getElementById('statusText');
 
-    if (devices && devices.length > 0) {
-        currentDevice = devices[0];
+    const previousDevice = currentDevice;
+    const newDevice = (devices && devices.length > 0) ? devices[0] : null;
+    const wasConnected = !!previousDevice;
+    const isConnected = !!newDevice;
+
+    if (isConnected) {
         statusDot.classList.add('connected');
-        statusText.textContent = `${devices[0].brand} ${devices[0].model} conectado`;
-        logToConsole('success', `Dispositivo detectado: ${devices[0].brand} ${devices[0].model}`);
+        statusText.textContent = `${newDevice.brand} ${newDevice.model} conectado`;
     } else {
-        currentDevice = null;
         statusDot.classList.remove('connected');
         statusText.textContent = 'Sin dispositivo conectado';
     }
+
+    // Only log when connection state or device actually changes
+    if (!wasConnected && isConnected) {
+        // Device just connected
+        logToConsole('success', `Dispositivo detectado: ${newDevice.brand} ${newDevice.model}`);
+    } else if (wasConnected && !isConnected) {
+        // Device just disconnected
+        logToConsole('info', 'Dispositivo desconectado');
+    } else if (wasConnected && isConnected) {
+        // Device stayed connected but may have changed
+        const sameBrand = previousDevice && previousDevice.brand === newDevice.brand;
+        const sameModel = previousDevice && previousDevice.model === newDevice.model;
+        if (!sameBrand || !sameModel) {
+            logToConsole('success', `Nuevo dispositivo detectado: ${newDevice.brand} ${newDevice.model}`);
+        }
+    }
+
+    currentDevice = newDevice;
 }
 
 // Section Loading
