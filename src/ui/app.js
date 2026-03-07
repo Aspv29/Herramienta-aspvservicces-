@@ -491,6 +491,54 @@ function attachSectionHandlers(section) {
             logToConsole('success', 'QR Code generado correctamente');
         });
     }
+
+    // Generic handlers for all sections' buttons
+    const sectionElement = document.getElementById(section);
+    if (!sectionElement) {
+        return;
+    }
+
+    // Attach handlers to any button-like element that declares an operation via data attributes.
+    const operationButtons = sectionElement.querySelectorAll('[data-operation][data-ipc-channel]');
+    operationButtons.forEach(btn => {
+        // Avoid attaching multiple handlers if the section is reloaded.
+        if (btn.getAttribute('data-handler-attached') === 'true') {
+            return;
+        }
+        btn.setAttribute('data-handler-attached', 'true');
+
+        const operationName =
+            btn.getAttribute('data-operation') ||
+            (btn.textContent ? btn.textContent.trim() : 'Operación');
+        const channel = btn.getAttribute('data-ipc-channel');
+
+        btn.addEventListener('click', async () => {
+            if (!channel) {
+                logToConsole('error', 'No se ha configurado el canal IPC para esta operación');
+                return;
+            }
+
+            // Optional extra arguments encoded as JSON in data-ipc-args.
+            let extraArgs = [];
+            const argsAttr = btn.getAttribute('data-ipc-args');
+            if (argsAttr && argsAttr.trim() !== '') {
+                try {
+                    extraArgs = JSON.parse(argsAttr);
+                    if (!Array.isArray(extraArgs)) {
+                        extraArgs = [extraArgs];
+                    }
+                } catch (e) {
+                    logToConsole('error', 'Formato inválido en data-ipc-args, se ignorarán argumentos extra');
+                    extraArgs = [];
+                }
+            }
+
+            await executeOperation(operationName, async () => {
+                // Always pass the current device id as first argument if disponible.
+                return await ipcRenderer.invoke(channel, currentDevice?.id, ...extraArgs);
+            });
+        });
+    });
 }
 
 // Utility Functions
