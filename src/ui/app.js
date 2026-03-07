@@ -1,4 +1,5 @@
-const { ipcRenderer } = require('electron');
+// Use the contextBridge-exposed API (defined in preload.js)
+const electronAPI = window.electronAPI;
 
 // State
 let currentDevice = null;
@@ -34,7 +35,7 @@ function initializeDeviceDetection() {
 
 async function detectDevices() {
     try {
-        const devices = await ipcRenderer.invoke('detect-devices');
+        const devices = await electronAPI.invoke('detect-devices');
         updateDeviceStatus(devices);
     } catch (error) {
         logToConsole('error', `Error detectando dispositivos: ${error.message}`);
@@ -45,16 +46,32 @@ function updateDeviceStatus(devices) {
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.getElementById('statusText');
 
-    if (devices && devices.length > 0) {
-        currentDevice = devices[0];
+    const previousDevice = currentDevice;
+    const newDevice = (devices && devices.length > 0) ? devices[0] : null;
+    const wasConnected = !!previousDevice;
+    const isConnected = !!newDevice;
+
+    if (isConnected) {
         statusDot.classList.add('connected');
-        statusText.textContent = `${devices[0].brand} ${devices[0].model} conectado`;
-        logToConsole('success', `Dispositivo detectado: ${devices[0].brand} ${devices[0].model}`);
+        statusText.textContent = `${newDevice.brand} ${newDevice.model} conectado`;
     } else {
-        currentDevice = null;
         statusDot.classList.remove('connected');
         statusText.textContent = 'Sin dispositivo conectado';
     }
+
+    if (!wasConnected && isConnected) {
+        logToConsole('success', `Dispositivo detectado: ${newDevice.brand} ${newDevice.model}`);
+    } else if (wasConnected && !isConnected) {
+        logToConsole('info', 'Dispositivo desconectado');
+    } else if (wasConnected && isConnected) {
+        const sameBrand = previousDevice && previousDevice.brand === newDevice.brand;
+        const sameModel = previousDevice && previousDevice.model === newDevice.model;
+        if (!sameBrand || !sameModel) {
+            logToConsole('success', `Nuevo dispositivo detectado: ${newDevice.brand} ${newDevice.model}`);
+        }
+    }
+
+    currentDevice = newDevice;
 }
 
 // Section Loading
@@ -446,7 +463,7 @@ function attachSectionHandlers(section) {
         document.getElementById('executeFRP')?.addEventListener('click', async () => {
             await executeOperation('FRP Bypass', async () => {
                 const method = document.getElementById('frpMethod').value;
-                return await ipcRenderer.invoke('android-remove-frp', currentDevice?.id, method);
+                return await electronAPI.invoke('android-remove-frp', currentDevice?.id, method);
             });
         });
     }
@@ -454,10 +471,42 @@ function attachSectionHandlers(section) {
     // Terminal handlers
     if (section === 'terminal') {
         document.querySelectorAll('[data-cmd]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const cmd = btn.getAttribute('data-cmd');
                 logToConsole('info', `Ejecutando: ${cmd}`);
+                try {
+                    const result = await electronAPI.invoke('terminal-execute-command', cmd);
+                    if (result && result.output) {
+                        logToConsole('info', result.output);
+                    } else {
+                        logToConsole('success', `Comando "${cmd}" ejecutado`);
+                    }
+                } catch (error) {
+                    logToConsole('error', `Error ejecutando comando "${cmd}": ${error.message}`);
+                }
             });
+        });
+
+        document.getElementById('executeCommand')?.addEventListener('click', async () => {
+            const cmd = document.getElementById('customCommand').value.trim();
+            if (!cmd) return;
+            if (!/^(adb|fastboot)\s/.test(cmd)) {
+                logToConsole('error', 'Solo se permiten comandos adb y fastboot');
+                return;
+            }
+            logToConsole('info', `Ejecutando: ${cmd}`);
+            try {
+                const result = await electronAPI.invoke('terminal-execute-command', cmd);
+                if (result && result.output) {
+                    logToConsole('info', result.output);
+                } else if (!result.success) {
+                    logToConsole('error', `Error: ${result.error}`);
+                } else {
+                    logToConsole('success', `Comando ejecutado`);
+                }
+            } catch (error) {
+                logToConsole('error', `Error ejecutando comando: ${error.message}`);
+            }
         });
     }
 
@@ -466,9 +515,142 @@ function attachSectionHandlers(section) {
         document.getElementById('generateQR')?.addEventListener('click', async () => {
             const deviceType = document.getElementById('qrDeviceType').value;
             const carrier = document.getElementById('qrCarrier').value;
-            const result = await ipcRenderer.invoke('mdm-generate-qr', deviceType, carrier);
+            const result = await electronAPI.invoke('mdm-generate-qr', deviceType, carrier);
             document.getElementById('qrDisplay').style.display = 'block';
             logToConsole('success', 'QR Code generado correctamente');
+        });
+    }
+
+    // Screen lock handlers
+    if (section === 'android-screen') {
+        document.getElementById('removeScreenLock')?.addEventListener('click', async () => {
+            await executeOperation('Screen Lock Removal', async () => {
+                return await electronAPI.invoke('android-remove-screen-lock', currentDevice?.id);
+            });
+        });
+    }
+
+    // Firmware handlers
+    if (section === 'android-firmware') {
+        document.getElementById('selectFirmware')?.addEventListener('click', async () => {
+            const filePath = await electronAPI.invoke('select-firmware-file');
+            if (filePath) {
+                document.getElementById('firmwareFileName').textContent = filePath;
+            }
+        });
+
+        document.getElementById('flashFirmware')?.addEventListener('click', async () => {
+            const firmwarePath = document.getElementById('firmwareFileName').textContent;
+            if (!firmwarePath || firmwarePath === 'No seleccionado') {
+                logToConsole('error', 'Selecciona un archivo de firmware primero');
+                return;
+            }
+            await executeOperation('Firmware Flash', async () => {
+                return await electronAPI.invoke('android-flash-firmware', currentDevice?.id, firmwarePath);
+            });
+        });
+    }
+
+    // MDM handlers
+    if (section === 'android-mdm') {
+        document.getElementById('removeMDM')?.addEventListener('click', async () => {
+            await executeOperation('MDM Removal', async () => {
+                const mdmType = document.getElementById('mdmType').value;
+                return await electronAPI.invoke('android-remove-mdm', currentDevice?.id, mdmType);
+            });
+        });
+    }
+
+    // IMEI handlers
+    if (section === 'android-imei') {
+        document.getElementById('repairIMEI')?.addEventListener('click', async () => {
+            await executeOperation('IMEI Repair', async () => {
+                return await electronAPI.invoke('android-repair-imei', currentDevice?.id);
+            });
+        });
+    }
+
+    // Xiaomi handlers
+    if (section === 'android-xiaomi') {
+        document.getElementById('bypassMiAccount')?.addEventListener('click', async () => {
+            await executeOperation('Mi Account Bypass', async () => {
+                return await electronAPI.invoke('android-bypass-mi-account', currentDevice?.id);
+            });
+        });
+    }
+
+    // Bootloader handlers
+    if (section === 'android-bootloader') {
+        document.getElementById('unlockBootloader')?.addEventListener('click', async () => {
+            await executeOperation('Bootloader Unlock', async () => {
+                return await electronAPI.invoke('android-unlock-bootloader', currentDevice?.id);
+            });
+        });
+    }
+
+    // iCloud handlers
+    if (section === 'ios-icloud') {
+        document.getElementById('bypassiCloud')?.addEventListener('click', async () => {
+            await executeOperation('iCloud Bypass', async () => {
+                return await electronAPI.invoke('ios-bypass-icloud', currentDevice?.id, 'default');
+            });
+        });
+    }
+
+    // iOS Activation handlers
+    if (section === 'ios-activation') {
+        document.getElementById('activateiOS')?.addEventListener('click', async () => {
+            await executeOperation('iOS Activation', async () => {
+                return await electronAPI.invoke('ios-activate-device', currentDevice?.id);
+            });
+        });
+    }
+
+    // Jailbreak handlers
+    if (section === 'ios-jailbreak') {
+        document.getElementById('jailbreakiOS')?.addEventListener('click', async () => {
+            await executeOperation('iOS Jailbreak', async () => {
+                return await electronAPI.invoke('ios-jailbreak', currentDevice?.id);
+            });
+        });
+    }
+
+    // Carrier Telcel handlers
+    if (section === 'carrier-telcel') {
+        document.getElementById('unlockTelcel')?.addEventListener('click', async () => {
+            await executeOperation('Telcel Unlock', async () => {
+                return await electronAPI.invoke('carrier-unlock-telcel', currentDevice?.id);
+            });
+        });
+    }
+
+    // Carrier AT&T handlers
+    if (section === 'carrier-att') {
+        document.getElementById('unlockATT')?.addEventListener('click', async () => {
+            await executeOperation('AT&T Unlock', async () => {
+                return await electronAPI.invoke('carrier-unlock-att', currentDevice?.id);
+            });
+        });
+    }
+
+    // Payjoy handlers
+    if (section === 'carrier-payjoy') {
+        document.getElementById('unlockPayjoy')?.addEventListener('click', async () => {
+            await executeOperation('Payjoy Unlock', async () => {
+                return await electronAPI.invoke('carrier-unlock-payjoy', currentDevice?.id);
+            });
+        });
+    }
+
+    // Driver handlers
+    if (section === 'drivers') {
+        document.querySelectorAll('[data-driver]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const driverType = btn.getAttribute('data-driver');
+                await executeOperation(`Driver Install (${driverType})`, async () => {
+                    return await electronAPI.invoke('driver-install', driverType);
+                });
+            });
         });
     }
 }
@@ -507,13 +689,13 @@ function hideLoading() {
 }
 
 function logToConsole(level, message) {
-    const console = document.getElementById('consoleOutput');
+    const consoleOutput = document.getElementById('consoleOutput');
     const entry = document.createElement('div');
     entry.className = `log-entry ${level}`;
     const timestamp = new Date().toLocaleTimeString();
     entry.textContent = `[${timestamp}] ${message}`;
-    console.appendChild(entry);
-    console.scrollTop = console.scrollHeight;
+    consoleOutput.appendChild(entry);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
 function setupConsoleControls() {

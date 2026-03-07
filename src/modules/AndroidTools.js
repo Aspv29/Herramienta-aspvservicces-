@@ -208,12 +208,12 @@ class AndroidTools {
         try {
             const packages = mdmPackages[mdmType] || [];
 
-            for (const package of packages) {
+            for (const mdmPackage of packages) {
                 try {
-                    await execAsync(`adb -s ${deviceId} shell pm uninstall --user 0 ${package}`);
-                    await execAsync(`adb -s ${deviceId} shell pm uninstall ${package}`);
+                    await execAsync(`adb -s ${deviceId} shell pm uninstall --user 0 ${mdmPackage}`);
+                    await execAsync(`adb -s ${deviceId} shell pm uninstall ${mdmPackage}`);
                 } catch (error) {
-                    console.error(`Failed to remove package: ${package}`, error);
+                    console.error(`Failed to remove package: ${mdmPackage}`, error);
                 }
             }
 
@@ -264,7 +264,7 @@ class AndroidTools {
                 'shell am start -n com.xiaomi.finddevice/.ui.SplashActivity',
                 'shell pm uninstall --user 0 com.xiaomi.finddevice',
                 'shell pm disable-user com.xiaomi.finddevice',
-                'shell content delete --uri content://settings/secure --where "name=\'xiaomi_account_status\'""'
+                'shell content delete --uri content://settings/secure --where "name=\'xiaomi_account_status\'"'
             ];
 
             for (const command of commands) {

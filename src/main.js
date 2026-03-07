@@ -25,9 +25,10 @@ function createWindow() {
     icon: path.join(__dirname, '../assets/icon.png'),
     backgroundColor: '#0a0e27',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+      enableRemoteModule: false
     },
     frame: true,
     autoHideMenuBar: true,
@@ -160,6 +161,22 @@ function setupIpcHandlers() {
       ]
     });
     return result.filePaths[0];
+  });
+
+  // Terminal command execution - restricted to adb and fastboot commands only
+  ipcMain.handle('terminal-execute-command', async (event, command) => {
+    if (typeof command !== 'string' || !/^(adb|fastboot)\s/.test(command.trim())) {
+      return { success: false, error: 'Only adb and fastboot commands are allowed' };
+    }
+    try {
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
+      const { stdout, stderr } = await execAsync(command, { timeout: 15000 });
+      return { success: true, output: stdout || stderr };
+    } catch (error) {
+      return { success: false, error: error.message, output: error.stdout || '' };
+    }
   });
 
   // Logging
