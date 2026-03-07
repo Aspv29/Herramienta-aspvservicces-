@@ -25,9 +25,10 @@ function createWindow() {
     icon: path.join(__dirname, '../assets/icon.png'),
     backgroundColor: '#0a0e27',
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+      enableRemoteModule: false
     },
     frame: true,
     autoHideMenuBar: true,
