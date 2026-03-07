@@ -575,13 +575,13 @@ function hideLoading() {
 }
 
 function logToConsole(level, message) {
-    const console = document.getElementById('consoleOutput');
+    const consoleOutput = document.getElementById('consoleOutput');
     const entry = document.createElement('div');
     entry.className = `log-entry ${level}`;
     const timestamp = new Date().toLocaleTimeString();
     entry.textContent = `[${timestamp}] ${message}`;
-    console.appendChild(entry);
-    console.scrollTop = console.scrollHeight;
+    consoleOutput.appendChild(entry);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
 function setupConsoleControls() {
