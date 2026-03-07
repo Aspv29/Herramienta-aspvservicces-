@@ -1,7 +1,7 @@
 {
-  "name": "aspvservicces",
+  "name": "aspvservices",
   "version": "1.0.0",
-  "description": "AspvServicces - Professional Mobile Device Service Tool",
+  "description": "AspvServices - Professional Mobile Device Service Tool",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -18,11 +18,11 @@
     "android",
     "iphone"
   ],
-  "author": "AspvServicces Team",
+  "author": "AspvServices Team",
   "license": "Proprietary",
   "build": {
-    "appId": "com.aspvservicces.app",
-    "productName": "AspvServicces",
+    "appId": "com.aspvservices.app",
+    "productName": "AspvServices",
     "win": {
       "target": [
         {

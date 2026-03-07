@@ -21,7 +21,7 @@ function createWindow() {
     height: 900,
     minWidth: 1200,
     minHeight: 800,
-    title: 'AspvServicces - Professional Device Service Tool',
+    title: 'AspvServices - Professional Device Service Tool',
     icon: path.join(__dirname, '../assets/icon.png'),
     backgroundColor: '#0a0e27',
     webPreferences: {
