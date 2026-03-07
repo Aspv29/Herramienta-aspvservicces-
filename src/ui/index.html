@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AspvServicces - Professional Device Service Tool</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-section">
+                <div class="logo-icon">⚡</div>
+                <h1>AspvServicces</h1>
+                <span class="version">v1.0 Professional</span>
+            </div>
+            <div class="device-status">
+                <div class="status-indicator" id="deviceStatus">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Sin dispositivo conectado</span>
+                </div>
+                <button class="btn-refresh" id="refreshDevices">🔄 Detectar</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <div class="nav-section">
+                        <h3>ANDROID TOOLS</h3>
+                        <button class="nav-item active" data-section="android-frp">
+                            <span class="icon">🔓</span>
+                            <span>FRP Bypass</span>
+                        </button>
+                        <button class="nav-item" data-section="android-screen">
+                            <span class="icon">🔐</span>
+                            <span>Screen Lock</span>
+                        </button>
+                        <button class="nav-item" data-section="android-firmware">
+                            <span class="icon">💾</span>
+                            <span>Firmware Flash</span>
+                        </button>
+                        <button class="nav-item" data-section="android-mdm">
+                            <span class="icon">🛡️</span>
+                            <span>MDM/Knox</span>
+                        </button>
+                        <button class="nav-item" data-section="android-imei">
+                            <span class="icon">📱</span>
+                            <span>IMEI Repair</span>
+                        </button>
+                        <button class="nav-item" data-section="android-xiaomi">
+                            <span class="icon">🌐</span>
+                            <span>Mi Account</span>
+                        </button>
+                        <button class="nav-item" data-section="android-bootloader">
+                            <span class="icon">🔧</span>
+                            <span>Bootloader</span>
+                        </button>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3>iOS TOOLS</h3>
+                        <button class="nav-item" data-section="ios-icloud">
+                            <span class="icon">☁️</span>
+                            <span>iCloud Bypass</span>
+                        </button>
+                        <button class="nav-item" data-section="ios-activation">
+                            <span class="icon">✅</span>
+                            <span>Activation</span>
+                        </button>
+                        <button class="nav-item" data-section="ios-jailbreak">
+                            <span class="icon">🔓</span>
+                            <span>Jailbreak</span>
+                        </button>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3>CARRIER UNLOCK</h3>
+                        <button class="nav-item" data-section="carrier-telcel">
+                            <span class="icon">📡</span>
+                            <span>Telcel MX</span>
+                        </button>
+                        <button class="nav-item" data-section="carrier-att">
+                            <span class="icon">📡</span>
+                            <span>AT&T MX</span>
+                        </button>
+                        <button class="nav-item" data-section="carrier-payjoy">
+                            <span class="icon">💳</span>
+                            <span>Payjoy</span>
+                        </button>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3>UTILIDADES</h3>
+                        <button class="nav-item" data-section="drivers">
+                            <span class="icon">💿</span>
+                            <span>Drivers</span>
+                        </button>
+                        <button class="nav-item" data-section="mdm-qr">
+                            <span class="icon">📷</span>
+                            <span>QR MDM Bypass</span>
+                        </button>
+                        <button class="nav-item" data-section="terminal">
+                            <span class="icon">⌨️</span>
+                            <span>Terminal</span>
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="content-area">
+                <div id="content-container">
+                    <!-- Content sections will be loaded here -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Console/Log Area -->
+        <footer class="console-area">
+            <div class="console-header">
+                <span>📋 Console Log</span>
+                <button id="clearConsole">Clear</button>
+            </div>
+            <div class="console-output" id="consoleOutput">
+                <div class="log-entry info">AspvServicces iniciado correctamente...</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Device Info Modal -->
+    <div id="deviceModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Información del Dispositivo</h2>
+            <div id="deviceInfo"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Procesando...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

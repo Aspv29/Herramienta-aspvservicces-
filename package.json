@@ -1,0 +1,86 @@
+{
+  "name": "aspvservicces",
+  "version": "1.0.0",
+  "description": "AspvServicces - Professional Mobile Device Service Tool",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win --x64",
+    "dev": "electron . --dev"
+  },
+  "keywords": [
+    "mobile",
+    "unlock",
+    "frp",
+    "mdm",
+    "firmware",
+    "android",
+    "iphone"
+  ],
+  "author": "AspvServicces Team",
+  "license": "Proprietary",
+  "build": {
+    "appId": "com.aspvservicces.app",
+    "productName": "AspvServicces",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "license": "LICENSE.txt"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "tools/**/*",
+      "drivers/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "tools/",
+        "to": "tools",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "drivers/",
+        "to": "drivers",
+        "filter": ["**/*"]
+      }
+    ]
+  },
+  "dependencies": {
+    "electron": "^28.0.0",
+    "adbkit": "^2.11.3",
+    "node-fetch": "^2.6.9",
+    "qrcode": "^1.5.3",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.5",
+    "axios": "^1.6.0",
+    "usb-detection": "^4.14.2",
+    "serialport": "^12.0.0",
+    "archiver": "^6.0.1",
+    "unzipper": "^0.10.14",
+    "node-cmd": "^5.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.9.1"
+  }
+}
