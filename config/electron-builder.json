@@ -1,0 +1,73 @@
+{
+  "appId": "com.aspvservicces.app",
+  "productName": "AspvServicces",
+  "copyright": "Copyright © 2024 AspvServicces Team",
+  "directories": {
+    "output": "dist",
+    "buildResources": "assets"
+  },
+  "files": [
+    "src/**/*",
+    "assets/**/*",
+    "tools/**/*",
+    "drivers/**/*",
+    "package.json",
+    "node_modules/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "tools/",
+      "to": "tools",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "drivers/",
+      "to": "drivers",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "LICENSE.txt",
+      "to": "LICENSE.txt"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/icon.ico",
+    "requestedExecutionLevel": "requireAdministrator",
+    "artifactName": "${productName}-${version}-Setup.${ext}",
+    "publisherName": "AspvServicces Team",
+    "verifyUpdateCodeSignature": false
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "menuCategory": true,
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "installerHeader": "assets/installer-header.bmp",
+    "installerHeaderIcon": "assets/icon.ico",
+    "license": "LICENSE.txt",
+    "displayLanguageSelector": true,
+    "installerLanguages": ["en_US", "es_MX"],
+    "multiLanguageInstaller": true,
+    "perMachine": true,
+    "runAfterFinish": true,
+    "shortcutName": "AspvServicces"
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-Portable.${ext}"
+  },
+  "publish": null
+}

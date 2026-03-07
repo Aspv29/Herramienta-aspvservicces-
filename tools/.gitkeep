@@ -1,0 +1,14 @@
+# Tools directory
+# Place third-party tools and utilities here
+
+Recommended tools to include:
+- ADB (Android Debug Bridge)
+- Fastboot
+- Odin (Samsung)
+- SP Flash Tool (MediaTek)
+- QFIL/QPST (Qualcomm)
+- idevice tools (iOS)
+- Other proprietary unlocking tools
+
+Note: Due to licensing, these tools are not included in the repository
+and must be obtained separately.
