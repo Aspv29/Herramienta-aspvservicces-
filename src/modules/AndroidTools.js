@@ -264,7 +264,7 @@ class AndroidTools {
                 'shell am start -n com.xiaomi.finddevice/.ui.SplashActivity',
                 'shell pm uninstall --user 0 com.xiaomi.finddevice',
                 'shell pm disable-user com.xiaomi.finddevice',
-                'shell content delete --uri content://settings/secure --where "name=\'xiaomi_account_status\'""'
+                'shell content delete --uri content://settings/secure --where "name=\'xiaomi_account_status\'"'
             ];
 
             for (const command of commands) {
