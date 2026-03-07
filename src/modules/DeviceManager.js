@@ -1,9 +1,10 @@
 const adb = require('adbkit');
 const usb = require('usb-detection');
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 class DeviceManager {
     constructor() {
@@ -233,7 +234,8 @@ class DeviceManager {
 
     async executeADBCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
+            const args = ['-s', deviceId, ...command.trim().split(/\s+/).filter(Boolean)];
+            const { stdout, stderr } = await execFileAsync('adb', args);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
@@ -242,7 +244,8 @@ class DeviceManager {
 
     async executeFastbootCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
+            const args = ['-s', deviceId, ...command.trim().split(/\s+/).filter(Boolean)];
+            const { stdout, stderr } = await execFileAsync('fastboot', args);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
