@@ -66,7 +66,6 @@
     ]
   },
   "dependencies": {
-    "electron": "^28.0.0",
     "adbkit": "^2.11.3",
     "node-fetch": "^2.6.9",
     "qrcode": "^1.5.3",
@@ -81,6 +80,7 @@
     "node-cmd": "^5.0.0"
   },
   "devDependencies": {
+    "electron": "^28.0.0",
     "electron-builder": "^24.9.1"
   }
 }
