@@ -1,99 +1,145 @@
-# AspvServicces - Professional Device Service Tool
+# AspvServices v2.0 - Professional Device Service Tool
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-Proprietary-red.svg)
+![Electron](https://img.shields.io/badge/Electron-33-47848F.svg)
+![Updated](https://img.shields.io/badge/updated-2026-brightgreen.svg)
 
-A premium professional toolkit for mobile device servicing, unlocking, and firmware management.
+## Descripcion
 
-## Features
+**AspvServices** es una herramienta profesional para Windows diseñada para tecnicos de servicio de dispositivos moviles. Incluye funciones completas de desbloqueo, reparacion, flasheo de firmware y gestion de dispositivos Android e iOS.
 
-- **Android Tools**: FRP Bypass, Screen Lock Removal, Firmware Flashing, MDM/Knox Removal, IMEI Repair
-- **iOS Tools**: iCloud Bypass, Device Activation, Jailbreak Support
-- **Carrier Unlock**: Support for Telcel, AT&T, Payjoy (Mexico)
-- **MDM Bypass**: QR Code generation, Knox Guard removal
-- **Driver Management**: Automatic installation of device drivers
-- **Premium Terminal**: Colorful CLI interface with advanced features
+## Caracteristicas Principales
 
-## Installation
+### Android Tools
+| Funcion | Descripcion | Marcas Soportadas |
+|---------|-------------|-------------------|
+| **FRP Bypass** | Eliminacion de Factory Reset Protection | Samsung, Xiaomi, Huawei, Motorola, Oppo, Vivo, Realme, Tecno, Infinix, LG |
+| **Screen Lock Removal** | Remueve PIN, patron, password, huella, Face ID | Todas las marcas |
+| **Firmware Flash** | Flasheo de firmware oficial y custom | Qualcomm, MediaTek, UNISOC, Kirin, Exynos |
+| **MDM/Knox Removal** | Elimina MDM empresarial y Knox Guard | Samsung Knox, Google EMM, AirWatch, Intune, MobileIron |
+| **IMEI Repair** | Reparacion y restauracion de IMEI | MediaTek, Qualcomm, UNISOC |
+| **Mi Account Bypass** | Bypass de Mi Cloud/Mi Account | Xiaomi, Redmi, POCO |
+| **Bootloader Unlock/Lock** | Gestion de bootloader | Todas las marcas |
+| **Funciones Avanzadas** | Reparar llamadas, WiFi, Diag Mode, menus ocultos | Multi-marca |
 
-### Prerequisites
+### iOS / iPhone Tools
+| Funcion | Descripcion |
+|---------|-------------|
+| **iCloud Bypass** | checkra1n, palera1n, F3arRa1n, Sliver, Signal |
+| **Activacion** | Activacion de dispositivos iOS |
+| **Jailbreak** | Auto-detecta herramienta correcta para version iOS |
 
-- Windows 10/11 (64-bit)
-- Node.js 18+ (for development)
-- Administrator privileges
+### Desbloqueo de Operador (Mexico)
+| Operador | Funciones |
+|----------|-----------|
+| **Telcel** | Desbloqueo de red, codigo unlock, remocion de apps |
+| **AT&T** | Desbloqueo oficial/alternativo, remocion de bloatware |
+| **Payjoy** | Eliminacion de bloqueo de financiamiento |
 
-### For End Users
+### Utilidades
+- **Gestion de Drivers** - ADB, Samsung, Qualcomm 9008, MediaTek VCOM, Apple, Huawei, Motorola, LG
+- **QR MDM Bypass** - Generador de codigos QR para bypass MDM durante setup inicial
+- **Terminal Premium** - Consola integrada ADB/Fastboot con comandos rapidos
+- **Deteccion Automatica** - Detecta dispositivos Android e iOS conectados por USB
 
-1. Download `AspvServicces-Setup.exe`
-2. Run as Administrator
-3. Follow the installation wizard
-4. Launch from Desktop shortcut
+## Chipsets Soportados
 
-### For Developers
+- **Qualcomm** - MSM, SDM, SM series (Modo EDL 9008)
+- **MediaTek** - MT series (SP Flash Tool, preloader)
+- **Samsung Exynos** - (Odin/Download mode)
+- **UNISOC / Spreadtrum** - (Research Download)
+- **HiSilicon Kirin** - (HiSuite)
+- **Google Tensor** - (Fastboot)
 
+## Requisitos del Sistema
+
+- **OS:** Windows 10/11 (64-bit)
+- **RAM:** 4 GB minimo
+- **Disco:** 500 MB de espacio libre
+- **USB:** Puerto USB 2.0/3.0
+- **Drivers:** Se instalan desde la herramienta
+- **Permisos:** Administrador
+
+## Instalacion
+
+### Desde el Installer (EXE)
+1. Descarga `AspvServices-2.0.0-Setup.exe` desde la seccion de releases
+2. Ejecuta como Administrador
+3. Sigue el asistente de instalacion
+4. Lanza desde el acceso directo en escritorio
+
+### Desde codigo fuente
 ```bash
-# Clone repository
-git clone https://github.com/aspvservicces/herramienta-aspvservicces.git
-cd herramienta-aspvservicces
+# Clonar repositorio
+git clone <repo-url>
+cd aspvservices
 
-# Install dependencies
+# Instalar dependencias
 npm install
 
-# Run in development mode
-npm start
+# Ejecutar en modo desarrollo
+npm run dev
 
-# Build for production
+# Construir instalador Windows
 npm run build:win
 ```
 
-## Usage
+## Estructura del Proyecto
 
-### GUI Mode
-
-Launch the application and use the visual interface to:
-1. Detect connected devices
-2. Select tools from the sidebar
-3. Execute operations with guided workflows
-
-### CLI Mode
-
-```bash
-# Run CLI directly
-node src/cli.js
-
-# Or use the packaged version
-aspv-cli
+```
+aspvservices/
+├── src/
+│   ├── main.js              # Proceso principal Electron
+│   ├── preload.js            # Bridge IPC (context isolation)
+│   ├── cli.js                # Interfaz CLI Premium
+│   ├── modules/
+│   │   ├── DeviceManager.js  # Deteccion de dispositivos
+│   │   ├── AndroidTools.js   # Herramientas Android (FRP, Screen, Flash, MDM, IMEI)
+│   │   ├── iOSTools.js       # Herramientas iOS (iCloud, Jailbreak, Activacion)
+│   │   ├── MDMBypass.js      # MDM Bypass + QR Generator
+│   │   ├── CarrierUnlock.js  # Desbloqueo de operadores Mexico
+│   │   └── DriverManager.js  # Gestion de drivers
+│   ├── ui/
+│   │   ├── index.html        # UI principal
+│   │   ├── styles.css        # Estilos premium
+│   │   └── app.js            # Logica frontend
+│   └── utils/
+│       └── PremiumCLI.js     # Utilidades CLI
+├── assets/                   # Iconos e imagenes
+├── config/
+│   └── electron-builder.json # Configuracion de build
+├── drivers/                  # Drivers incluidos
+├── tools/                    # Herramientas externas
+├── scripts/
+│   └── build.js              # Script de build
+├── package.json
+├── LICENSE.txt
+└── README.md
 ```
 
-## Documentation
+## Tecnologias
 
-- [Spanish Documentation](README_ES.md) - Documentación completa en español
-- [Build Instructions](docs/BUILD.md) - How to build from source
-- [API Reference](docs/API.md) - Module documentation
+- **Electron 33** - Framework de aplicacion desktop
+- **Node.js 22** - Runtime
+- **electron-builder 25** - Generacion de instaladores
+- **QRCode** - Generacion de codigos QR
+- **ADB/Fastboot** - Comunicacion con dispositivos Android
+- **libimobiledevice** - Comunicacion con dispositivos iOS
 
-## Legal Notice
+## Seguridad
 
-⚠️ **IMPORTANT**: This tool is designed for authorized device repair and service purposes only. Users must:
-- Own the devices being serviced or have explicit authorization
-- Comply with all local laws and regulations
-- Accept that certain operations may void warranties
-- Understand that IMEI modification may be illegal in some jurisdictions
+- Context Isolation habilitado
+- Node Integration deshabilitado en renderer
+- Preload script como bridge IPC
+- Content Security Policy implementada
+- Sin acceso directo al filesystem desde la UI
 
-**Use at your own risk.** The authors assume no liability for misuse of this software.
+## Licencia
 
-## License
+Software propietario. Todos los derechos reservados 2026 AspvServices Team.
 
-Copyright © 2024 AspvServicces Team. All rights reserved.
+## Aviso Legal
 
-This is proprietary software. See [LICENSE.txt](LICENSE.txt) for details.
-
-## Support
-
-- Email: support@aspvservicces.com
-- Issues: Use GitHub Issues for bug reports
-- Community: Join our Discord/Telegram
-
----
-
-Built with ❤️ for mobile service professionals
+Esta herramienta esta diseñada para tecnicos de servicio profesionales. El uso indebido de funciones de desbloqueo en dispositivos que no son de su propiedad puede ser ilegal. El usuario es responsable del uso correcto de la herramienta.

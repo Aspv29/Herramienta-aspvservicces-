@@ -1,5 +1,5 @@
-AspvServicces - Professional Device Service Tool
-Copyright (c) 2024 AspvServicces Team
+AspvServices - Professional Device Service Tool
+Copyright (c) 2026 AspvServices Team
 
 PROPRIETARY SOFTWARE LICENSE AGREEMENT
 
