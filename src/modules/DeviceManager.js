@@ -1,9 +1,10 @@
 const adb = require('adbkit');
 const usb = require('usb-detection');
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 class DeviceManager {
     constructor() {
@@ -147,7 +148,7 @@ class DeviceManager {
             const iosDevices = [];
             for (const deviceId of deviceIds) {
                 try {
-                    const { stdout: infoOutput } = await execAsync(`ideviceinfo -u ${deviceId}`);
+                    const { stdout: infoOutput } = await execFileAsync('ideviceinfo', ['-u', deviceId]);
                     const info = this.parseiOSInfo(infoOutput);
 
                     iosDevices.push({
@@ -219,30 +220,47 @@ class DeviceManager {
         if (!device) throw new Error('Device not found');
 
         if (device.type === 'android') {
-            const modes = {
-                'system': 'adb reboot',
-                'bootloader': 'adb reboot bootloader',
-                'recovery': 'adb reboot recovery',
-                'fastboot': 'adb reboot bootloader',
-                'download': 'adb reboot download'
+            const modeArgs = {
+                'system': [],
+                'bootloader': ['bootloader'],
+                'recovery': ['recovery'],
+                'fastboot': ['bootloader'],
+                'download': ['download']
             };
 
-            await execAsync(`${modes[mode] || modes.system} -s ${deviceId}`);
+            const args = modeArgs[mode] || [];
+            await execFileAsync('adb', ['-s', deviceId, 'reboot', ...args]);
         }
     }
 
+    /**
+     * Executes an ADB command on a specific device.
+     * @param {string} deviceId - The device serial number.
+     * @param {string|string[]} command - Command arguments. Pass an array for commands that
+     *   contain spaces within individual arguments (e.g. ['shell', 'echo', 'hello world']).
+     *   String form is split on whitespace and cannot represent arguments that contain spaces.
+     */
     async executeADBCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
+            const args = Array.isArray(command) ? command : command.split(/\s+/).filter(Boolean);
+            const { stdout, stderr } = await execFileAsync('adb', ['-s', deviceId, ...args]);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
         }
     }
 
+    /**
+     * Executes a Fastboot command on a specific device.
+     * @param {string} deviceId - The device serial number.
+     * @param {string|string[]} command - Command arguments. Pass an array for commands that
+     *   contain spaces within individual arguments (e.g. ['oem', 'get-bootinfo']).
+     *   String form is split on whitespace and cannot represent arguments that contain spaces.
+     */
     async executeFastbootCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
+            const args = Array.isArray(command) ? command : command.split(/\s+/).filter(Boolean);
+            const { stdout, stderr } = await execFileAsync('fastboot', ['-s', deviceId, ...args]);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
