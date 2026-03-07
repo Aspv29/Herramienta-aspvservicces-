@@ -1,9 +1,19 @@
 const adb = require('adbkit');
 const usb = require('usb-detection');
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const { promisify } = require('util');
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
+
+// Valid ADB/Fastboot device ID: serial numbers, IP:port, or emulator identifiers.
+const DEVICE_ID_RE = /^[a-zA-Z0-9._:\-]+$/;
+
+function validateDeviceId(deviceId) {
+    if (!deviceId || !DEVICE_ID_RE.test(deviceId)) {
+        throw new Error(`Invalid device ID: ${deviceId}`);
+    }
+}
 
 class DeviceManager {
     constructor() {
@@ -215,25 +225,29 @@ class DeviceManager {
     }
 
     async rebootDevice(deviceId, mode = 'system') {
+        validateDeviceId(deviceId);
         const device = this.devices.get(deviceId);
         if (!device) throw new Error('Device not found');
 
         if (device.type === 'android') {
             const modes = {
-                'system': 'adb reboot',
-                'bootloader': 'adb reboot bootloader',
-                'recovery': 'adb reboot recovery',
-                'fastboot': 'adb reboot bootloader',
-                'download': 'adb reboot download'
+                'system': 'reboot',
+                'bootloader': 'reboot bootloader',
+                'recovery': 'reboot recovery',
+                'fastboot': 'reboot bootloader',
+                'download': 'reboot download'
             };
 
-            await execAsync(`${modes[mode] || modes.system} -s ${deviceId}`);
+            await execAsync(`adb -s ${deviceId} ${modes[mode] || modes.system}`);
         }
     }
 
     async executeADBCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
+            validateDeviceId(deviceId);
+            // Note: command is split on whitespace; quoted arguments are not supported.
+            const args = ['-s', deviceId, ...command.trim().split(/\s+/)];
+            const { stdout, stderr } = await execFileAsync('adb', args);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
@@ -242,7 +256,10 @@ class DeviceManager {
 
     async executeFastbootCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
+            validateDeviceId(deviceId);
+            // Note: command is split on whitespace; quoted arguments are not supported.
+            const args = ['-s', deviceId, ...command.trim().split(/\s+/)];
+            const { stdout, stderr } = await execFileAsync('fastboot', args);
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };

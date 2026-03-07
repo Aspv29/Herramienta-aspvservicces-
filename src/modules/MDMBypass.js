@@ -1,0 +1,25 @@
+'use strict';
+
+/**
+ * MDMBypass - Stub implementation.
+ * Full MDM bypass support is not yet implemented.
+ */
+class MDMBypass {
+    constructor() {
+        console.warn('MDMBypass: module not yet fully implemented. Using stub.');
+    }
+
+    async generateQRCode(deviceType, carrier) {
+        return { success: false, error: 'MDMBypass not yet implemented' };
+    }
+
+    async bypassKnox(deviceId) {
+        return { success: false, error: 'MDMBypass not yet implemented' };
+    }
+
+    async removeCompanyApp(deviceId, appPackage) {
+        return { success: false, error: 'MDMBypass not yet implemented' };
+    }
+}
+
+module.exports = MDMBypass;
