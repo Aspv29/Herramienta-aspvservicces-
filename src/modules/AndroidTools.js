@@ -1,9 +1,9 @@
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs').promises;
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 class AndroidTools {
     constructor() {
@@ -36,21 +36,21 @@ class AndroidTools {
 
     async removeFRPviaADB(deviceId) {
         const commands = [
-            'shell content insert --uri content://settings/secure --bind name:s:user_setup_complete --bind value:s:1',
-            'shell am start -n com.google.android.gsf.login/',
-            'shell am start -n com.google.android.gsf.login.LoginActivity',
-            'shell content delete --uri content://settings/secure --where "name=\'lock_screen_owner_info\'"',
-            'shell rm /data/system/users/0/settings_ssaid.xml',
-            'shell pm uninstall --user 0 com.google.android.gsf',
-            'shell settings put global device_provisioned 1',
-            'shell settings put secure user_setup_complete 1'
+            ['shell', 'content', 'insert', '--uri', 'content://settings/secure', '--bind', 'name:s:user_setup_complete', '--bind', 'value:s:1'],
+            ['shell', 'am', 'start', '-n', 'com.google.android.gsf.login/'],
+            ['shell', 'am', 'start', '-n', 'com.google.android.gsf.login.LoginActivity'],
+            ['shell', 'content', 'delete', '--uri', 'content://settings/secure', '--where', "name='lock_screen_owner_info'"],
+            ['shell', 'rm', '/data/system/users/0/settings_ssaid.xml'],
+            ['shell', 'pm', 'uninstall', '--user', '0', 'com.google.android.gsf'],
+            ['shell', 'settings', 'put', 'global', 'device_provisioned', '1'],
+            ['shell', 'settings', 'put', 'secure', 'user_setup_complete', '1']
         ];
 
-        for (const command of commands) {
+        for (const args of commands) {
             try {
-                await execAsync(`adb -s ${deviceId} ${command}`);
+                await execFileAsync('adb', ['-s', deviceId, ...args]);
             } catch (error) {
-                console.error(`Command failed: ${command}`, error);
+                console.error(`Command failed: ${args.join(' ')}`, error);
             }
         }
 
@@ -59,18 +59,18 @@ class AndroidTools {
 
     async removeFRPviaFastboot(deviceId) {
         const commands = [
-            'erase config',
-            'erase frp',
-            'erase persistent',
-            'format userdata',
-            'reboot'
+            ['erase', 'config'],
+            ['erase', 'frp'],
+            ['erase', 'persistent'],
+            ['format', 'userdata'],
+            ['reboot']
         ];
 
-        for (const command of commands) {
+        for (const args of commands) {
             try {
-                await execAsync(`fastboot -s ${deviceId} ${command}`);
+                await execFileAsync('fastboot', ['-s', deviceId, ...args]);
             } catch (error) {
-                console.error(`Fastboot command failed: ${command}`, error);
+                console.error(`Fastboot command failed: ${args.join(' ')}`, error);
             }
         }
 
@@ -134,21 +134,21 @@ class AndroidTools {
 
         try {
             const commands = [
-                'shell rm /data/system/gesture.key',
-                'shell rm /data/system/locksettings.db',
-                'shell rm /data/system/locksettings.db-wal',
-                'shell rm /data/system/locksettings.db-shm',
-                'shell rm /data/system/gatekeeper.password.key',
-                'shell rm /data/system/gatekeeper.pattern.key',
-                'shell rm /data/system/*.key',
-                'reboot'
+                ['shell', 'rm', '/data/system/gesture.key'],
+                ['shell', 'rm', '/data/system/locksettings.db'],
+                ['shell', 'rm', '/data/system/locksettings.db-wal'],
+                ['shell', 'rm', '/data/system/locksettings.db-shm'],
+                ['shell', 'rm', '/data/system/gatekeeper.password.key'],
+                ['shell', 'rm', '/data/system/gatekeeper.pattern.key'],
+                ['shell', 'rm', '/data/system/*.key'],
+                ['reboot']
             ];
 
-            for (const command of commands) {
+            for (const args of commands) {
                 try {
-                    await execAsync(`adb -s ${deviceId} ${command}`);
+                    await execFileAsync('adb', ['-s', deviceId, ...args]);
                 } catch (error) {
-                    console.error(`Command failed: ${command}`, error);
+                    console.error(`Command failed: ${args.join(' ')}`, error);
                 }
             }
 
@@ -210,8 +210,8 @@ class AndroidTools {
 
             for (const mdmPackage of packages) {
                 try {
-                    await execAsync(`adb -s ${deviceId} shell pm uninstall --user 0 ${mdmPackage}`);
-                    await execAsync(`adb -s ${deviceId} shell pm uninstall ${mdmPackage}`);
+                    await execFileAsync('adb', ['-s', deviceId, 'shell', 'pm', 'uninstall', '--user', '0', mdmPackage]);
+                    await execFileAsync('adb', ['-s', deviceId, 'shell', 'pm', 'uninstall', mdmPackage]);
                 } catch (error) {
                     console.error(`Failed to remove package: ${mdmPackage}`, error);
                 }
@@ -219,16 +219,16 @@ class AndroidTools {
 
             // Additional MDM removal commands
             const commands = [
-                'shell dpm remove-active-admin com.android.server.devicepolicy/.DeviceOwner',
-                'shell settings put global device_provisioned 1',
-                'shell settings put secure user_setup_complete 1'
+                ['shell', 'dpm', 'remove-active-admin', 'com.android.server.devicepolicy/.DeviceOwner'],
+                ['shell', 'settings', 'put', 'global', 'device_provisioned', '1'],
+                ['shell', 'settings', 'put', 'secure', 'user_setup_complete', '1']
             ];
 
-            for (const command of commands) {
+            for (const args of commands) {
                 try {
-                    await execAsync(`adb -s ${deviceId} ${command}`);
+                    await execFileAsync('adb', ['-s', deviceId, ...args]);
                 } catch (error) {
-                    console.error(`Command failed: ${command}`, error);
+                    console.error(`Command failed: ${args.join(' ')}`, error);
                 }
             }
 
@@ -261,17 +261,17 @@ class AndroidTools {
 
         try {
             const commands = [
-                'shell am start -n com.xiaomi.finddevice/.ui.SplashActivity',
-                'shell pm uninstall --user 0 com.xiaomi.finddevice',
-                'shell pm disable-user com.xiaomi.finddevice',
-                'shell content delete --uri content://settings/secure --where "name=\'xiaomi_account_status\'"'
+                ['shell', 'am', 'start', '-n', 'com.xiaomi.finddevice/.ui.SplashActivity'],
+                ['shell', 'pm', 'uninstall', '--user', '0', 'com.xiaomi.finddevice'],
+                ['shell', 'pm', 'disable-user', 'com.xiaomi.finddevice'],
+                ['shell', 'content', 'delete', '--uri', 'content://settings/secure', '--where', "name='xiaomi_account_status'"]
             ];
 
-            for (const command of commands) {
+            for (const args of commands) {
                 try {
-                    await execAsync(`adb -s ${deviceId} ${command}`);
+                    await execFileAsync('adb', ['-s', deviceId, ...args]);
                 } catch (error) {
-                    console.error(`Command failed: ${command}`, error);
+                    console.error(`Command failed: ${args.join(' ')}`, error);
                 }
             }
 
@@ -285,8 +285,8 @@ class AndroidTools {
         console.log(`Unlocking bootloader on device ${deviceId}`);
 
         try {
-            await execAsync(`fastboot -s ${deviceId} oem unlock`);
-            await execAsync(`fastboot -s ${deviceId} flashing unlock`);
+            await execFileAsync('fastboot', ['-s', deviceId, 'oem', 'unlock']);
+            await execFileAsync('fastboot', ['-s', deviceId, 'flashing', 'unlock']);
 
             return { success: true, message: 'Bootloader unlock command sent' };
         } catch (error) {
@@ -304,31 +304,31 @@ class AndroidTools {
         const operations = {
             'fix-calls': async () => {
                 const commands = [
-                    'shell service call iphonesubinfo 1',
-                    'shell pm clear com.android.phone',
-                    'shell am force-stop com.android.phone'
+                    ['shell', 'service', 'call', 'iphonesubinfo', '1'],
+                    ['shell', 'pm', 'clear', 'com.android.phone'],
+                    ['shell', 'am', 'force-stop', 'com.android.phone']
                 ];
 
-                for (const cmd of commands) {
-                    await execAsync(`adb -s ${deviceId} ${cmd}`);
+                for (const args of commands) {
+                    await execFileAsync('adb', ['-s', deviceId, ...args]);
                 }
 
                 return { success: true, message: 'Phone app repaired' };
             },
             'enable-diag': async () => {
-                await execAsync(`adb -s ${deviceId} shell setprop sys.usb.config diag,adb`);
+                await execFileAsync('adb', ['-s', deviceId, 'shell', 'setprop', 'sys.usb.config', 'diag,adb']);
                 return { success: true, message: 'Diag mode enabled' };
             },
             'fix-wifi': async () => {
                 const commands = [
-                    'shell pm clear com.android.providers.settings',
-                    'shell rm /data/misc/wifi/*.conf',
-                    'shell svc wifi disable',
-                    'shell svc wifi enable'
+                    ['shell', 'pm', 'clear', 'com.android.providers.settings'],
+                    ['shell', 'rm', '/data/misc/wifi/*.conf'],
+                    ['shell', 'svc', 'wifi', 'disable'],
+                    ['shell', 'svc', 'wifi', 'enable']
                 ];
 
-                for (const cmd of commands) {
-                    await execAsync(`adb -s ${deviceId} ${cmd}`);
+                for (const args of commands) {
+                    await execFileAsync('adb', ['-s', deviceId, ...args]);
                 }
 
                 return { success: true, message: 'WiFi reset completed' };
