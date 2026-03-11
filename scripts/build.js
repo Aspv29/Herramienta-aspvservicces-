@@ -3,11 +3,16 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const chalk = require('chalk');
 
-console.log(chalk.cyan('╔══════════════════════════════════════════════════════════╗'));
-console.log(chalk.cyan('║') + chalk.bold('    AspvServicces - Build Script                      ') + chalk.cyan('║'));
-console.log(chalk.cyan('╚══════════════════════════════════════════════════════════╝'));
+const cyan = (s) => `\x1b[36m${s}\x1b[0m`;
+const bold = (s) => `\x1b[1m${s}\x1b[0m`;
+const green = (s) => `\x1b[32m${s}\x1b[0m`;
+const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
+const red = (s) => `\x1b[31m${s}\x1b[0m`;
+
+console.log(cyan('╔══════════════════════════════════════════════════════════╗'));
+console.log(cyan('║') + bold('    AspvServices - Build Script                       ') + cyan('║'));
+console.log(cyan('╚══════════════════════════════════════════════════════════╝'));
 console.log('');
 
 const steps = [
@@ -78,7 +83,7 @@ const steps = [
         action: () => {
             const distPath = path.join(__dirname, '..', 'dist');
             console.log('');
-            console.log(chalk.green('  ✓ Build completed successfully!'));
+            console.log(green('  ✓ Build completed successfully!'));
             console.log('');
             console.log('  Output files:');
 
@@ -92,7 +97,7 @@ const steps = [
             }
 
             console.log('');
-            console.log(chalk.cyan('  Installation files are in the dist/ directory'));
+            console.log(cyan('  Installation files are in the dist/ directory'));
         }
     }
 ];
@@ -100,21 +105,21 @@ const steps = [
 async function build() {
     for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
-        console.log(chalk.yellow(`[${i + 1}/${steps.length}]`) + ` ${step.name}...`);
+        console.log(yellow(`[${i + 1}/${steps.length}]`) + ` ${step.name}...`);
 
         try {
             await step.action();
-            console.log(chalk.green('  ✓ Done'));
+            console.log(green('  ✓ Done'));
             console.log('');
         } catch (error) {
-            console.log(chalk.red('  ✖ Failed'));
-            console.error(chalk.red('Error:'), error.message);
+            console.log(red('  ✖ Failed'));
+            console.error(red('Error:'), error.message);
             process.exit(1);
         }
     }
 }
 
 build().catch(error => {
-    console.error(chalk.red('Build failed:'), error);
+    console.error(red('Build failed:'), error);
     process.exit(1);
 });

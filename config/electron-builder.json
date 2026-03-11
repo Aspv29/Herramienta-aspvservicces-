@@ -43,8 +43,6 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "installerIcon": "assets/icon.ico",
-    "uninstallerIcon": "assets/icon.ico",
     "license": "LICENSE.txt",
     "perMachine": true,
     "runAfterFinish": true,

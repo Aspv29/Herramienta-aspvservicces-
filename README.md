@@ -1,10 +1,15 @@
 # AspvServices v2.0 - Professional Device Service Tool
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+[![Version](https://img.shields.io/github/v/release/Aspv29/Herramienta-aspvservicces-?label=version&color=blue)](https://github.com/Aspv29/Herramienta-aspvservicces-/releases/latest)
+[![Download](https://img.shields.io/github/downloads/Aspv29/Herramienta-aspvservicces-/total?color=brightgreen&label=descargas)](https://github.com/Aspv29/Herramienta-aspvservicces-/releases/latest)
 ![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-Proprietary-red.svg)
 ![Electron](https://img.shields.io/badge/Electron-33-47848F.svg)
-![Updated](https://img.shields.io/badge/updated-2026-brightgreen.svg)
+[![Build](https://img.shields.io/github/actions/workflow/status/Aspv29/Herramienta-aspvservicces-/build-release.yml?label=build)](https://github.com/Aspv29/Herramienta-aspvservicces-/actions)
+
+## ⬇️ Descarga
+
+> **[📥 Descargar AspvServices Setup (ultima version)](https://github.com/Aspv29/Herramienta-aspvservicces-/releases/latest)**
 
 ## Descripcion
 
@@ -64,17 +69,17 @@
 
 ## Instalacion
 
-### Desde el Installer (EXE)
-1. Descarga `AspvServices-2.0.0-Setup.exe` desde la seccion de releases
-2. Ejecuta como Administrador
+### Desde el Installer (EXE) - Recomendado
+1. Descarga **[AspvServices Setup](https://github.com/Aspv29/Herramienta-aspvservicces-/releases/latest)** desde la seccion de releases
+2. Ejecuta como **Administrador**
 3. Sigue el asistente de instalacion
 4. Lanza desde el acceso directo en escritorio
 
 ### Desde codigo fuente
 ```bash
 # Clonar repositorio
-git clone <repo-url>
-cd aspvservices
+git clone https://github.com/Aspv29/Herramienta-aspvservicces-.git
+cd Herramienta-aspvservicces-
 
 # Instalar dependencias
 npm install
