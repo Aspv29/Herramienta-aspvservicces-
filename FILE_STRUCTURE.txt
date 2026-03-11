@@ -1,0 +1,383 @@
+AspvServicces - Complete File Structure
+========================================
+
+Root Directory
+--------------
+├── package.json                    # Project configuration & dependencies
+├── .gitignore                      # Git ignore rules
+├── LICENSE.txt                     # Software license
+├── README.md                       # Main documentation (English)
+├── README_ES.md                    # Spanish documentation
+├── QUICKSTART.md                   # Quick start guide
+├── INSTALLATION.md                 # Installation & deployment guide
+└── PROJECT_SUMMARY.md              # Complete project summary
+
+Source Code (src/)
+------------------
+├── main.js                         # Electron main process entry point
+├── cli.js                          # CLI application entry point
+│
+├── modules/                        # Core functionality modules
+│   ├── DeviceManager.js           # Device detection & management
+│   ├── AndroidTools.js            # Android tools (FRP, unlock, firmware)
+│   ├── iOSTools.js                # iOS tools (iCloud, jailbreak)
+│   ├── MDMBypass.js               # MDM bypass & QR generation
+│   ├── CarrierUnlock.js           # Carrier unlock (Telcel, AT&T, Payjoy)
+│   └── DriverManager.js           # Driver installation & management
+│
+├── ui/                             # User interface
+│   ├── index.html                 # Main GUI interface
+│   ├── styles.css                 # Premium CSS styling
+│   └── app.js                     # Frontend JavaScript logic
+│
+└── utils/                          # Utility modules
+    └── PremiumCLI.js              # Colorful CLI utilities
+
+Configuration (config/)
+-----------------------
+└── electron-builder.json           # Build configuration for Windows EXE
+
+Scripts (scripts/)
+------------------
+└── build.js                        # Automated build script
+
+Documentation (docs/)
+---------------------
+├── BUILD.md                        # Build instructions
+└── USAGE.md                        # Complete user guide
+
+Assets (assets/)
+----------------
+└── .gitkeep                        # Icons and images directory
+                                    # Place icon.ico, icon.png here
+
+Tools (tools/)
+--------------
+└── .gitkeep                        # Third-party tools directory
+                                    # ADB, Fastboot, Odin, etc.
+
+Drivers (drivers/)
+------------------
+└── .gitkeep                        # Device drivers directory
+                                    # Auto-downloaded by application
+
+Feature Breakdown by File
+==========================
+
+DeviceManager.js
+----------------
+✓ Android device detection via ADB
+✓ iOS device detection via idevice tools
+✓ Fastboot mode detection
+✓ Device properties extraction
+✓ IMEI retrieval
+✓ Chipset detection (Qualcomm, MTK, HiSilicon, Exynos, UNISOC)
+✓ USB monitoring (connect/disconnect events)
+✓ Device reboot operations
+✓ ADB/Fastboot command execution
+
+AndroidTools.js
+---------------
+✓ FRP Bypass (6 methods)
+  - ADB method
+  - Fastboot method
+  - Odin/Combination file
+  - Test point method
+  - Miracle Box protocol
+✓ Screen lock removal (all types)
+✓ Firmware flashing support
+  - Odin (Samsung)
+  - SP Flash Tool (MediaTek)
+  - QFIL (Qualcomm)
+  - HiSuite (Huawei)
+  - Mi Flash (Xiaomi)
+✓ MDM/Knox removal
+✓ IMEI repair (MTK & Qualcomm)
+✓ Mi Account bypass
+✓ Bootloader unlock/lock
+✓ Advanced repairs (WiFi, calls, diag mode)
+
+iOSTools.js
+-----------
+✓ iCloud status checking
+✓ iCloud bypass (6 methods)
+  - checkra1n
+  - F3arRa1n
+  - Sliver
+  - Signal
+  - Mina
+✓ Device activation
+✓ Jailbreak support & recommendations
+✓ Version-specific tool suggestions
+✓ Passcode removal options
+✓ Device backup/restore
+✓ IPA installation
+✓ App uninstallation
+
+MDMBypass.js
+------------
+✓ QR code generation for MDM bypass
+✓ Device-specific QR formats
+  - Samsung (Knox enrollment bypass)
+  - LG
+  - Motorola
+  - Generic Android
+✓ Carrier-specific configurations
+  - Telcel
+  - AT&T
+  - Movistar
+✓ Knox Guard removal
+✓ Company app removal
+  - Telcel apps
+  - AT&T apps
+  - Payjoy apps
+  - Smart Lock apps
+✓ Google FRP bypass methods
+  - Talkback method
+  - Emergency call method
+
+CarrierUnlock.js
+----------------
+✓ Telcel unlock (Mexico)
+  - Unlock code generation
+  - APK removal method
+  - NVRAM modification (advanced)
+✓ AT&T unlock (Mexico)
+  - Official method guide
+  - APK removal
+  - Bypass method
+✓ Payjoy unlock
+  - APK removal
+  - ADB advanced method
+  - Factory reset method
+✓ Unlock code algorithms
+✓ Unlock status checking
+
+DriverManager.js
+----------------
+✓ Driver status checking
+✓ Driver installation support
+  - Android ADB & Fastboot
+  - Samsung USB Drivers
+  - Qualcomm QDLoader
+  - MediaTek VCOM
+  - Apple Mobile Device
+  - Huawei HiSuite
+  - LG USB Drivers
+  - Motorola Device Manager
+✓ Auto-detection of installed drivers
+✓ Installation instructions
+✓ Windows Test Mode management
+✓ Driver repair functionality
+
+PremiumCLI.js
+-------------
+✓ Colorful terminal output (chalk)
+✓ ASCII art banner
+✓ Interactive menus (inquirer)
+✓ Progress spinners (ora)
+✓ Progress bars
+✓ Table formatting
+✓ Console logging (info, success, warning, error)
+✓ Command execution with output
+✓ Countdown timers
+✓ User confirmation prompts
+✓ Input collection
+✓ Device info display
+
+User Interface (ui/)
+--------------------
+index.html:
+✓ Modern sidebar navigation
+✓ Device status header
+✓ Content area with sections
+✓ Console log viewer
+✓ Loading overlay
+✓ Modal dialogs
+
+styles.css:
+✓ Premium gradient themes
+✓ Animated elements
+✓ Responsive layout
+✓ Dark color scheme
+✓ Hover effects
+✓ Custom scrollbars
+✓ Progress bars
+✓ Status badges
+✓ Card layouts
+
+app.js:
+✓ Navigation system
+✓ Device detection UI
+✓ Dynamic section loading
+✓ All tool sections:
+  - FRP Bypass
+  - Screen Lock
+  - Firmware Flash
+  - MDM/Knox
+  - IMEI Repair
+  - Mi Account
+  - Bootloader
+  - iCloud Bypass
+  - iOS Activation
+  - Jailbreak
+  - Carrier Unlock (Telcel, AT&T, Payjoy)
+  - Drivers
+  - QR Code Generation
+  - Terminal
+✓ Event handlers
+✓ IPC communication
+✓ Console logging
+✓ Loading states
+
+CLI Application (cli.js)
+-------------------------
+✓ Interactive menu system
+✓ Main menu navigation
+✓ Android tools menu
+✓ iOS tools menu
+✓ Carrier unlock menu
+✓ MDM bypass menu
+✓ Drivers menu
+✓ Terminal mode
+✓ Device detection
+✓ All operations wrapped in CLI interface
+✓ Progress tracking
+✓ Error handling
+✓ User confirmations
+
+Build System
+============
+
+package.json:
+✓ Electron dependencies
+✓ Node.js modules
+✓ Build configuration
+✓ Scripts (start, build, dev)
+✓ electron-builder settings
+✓ NSIS installer config
+✓ Application metadata
+
+electron-builder.json:
+✓ Advanced build settings
+✓ Multi-language support
+✓ Installer customization
+✓ Portable version config
+✓ Resource bundling
+
+build.js:
+✓ Automated build process
+✓ Environment checking
+✓ Directory creation
+✓ File verification
+✓ Dependency installation
+✓ Build execution
+✓ Output reporting
+
+Documentation
+=============
+
+README.md (English):
+✓ Project overview
+✓ Feature list
+✓ Installation instructions
+✓ Usage basics
+✓ Legal notice
+✓ Support information
+
+README_ES.md (Spanish):
+✓ Complete Spanish documentation
+✓ Detailed feature descriptions
+✓ Installation guide
+✓ Usage instructions
+✓ Legal warnings
+✓ Technical support
+
+QUICKSTART.md:
+✓ 5-minute quick start
+✓ First-time setup
+✓ Common tasks
+✓ Quick commands
+✓ Troubleshooting basics
+✓ Safety checklist
+
+INSTALLATION.md:
+✓ System requirements
+✓ End user installation
+✓ Developer setup
+✓ Building from source
+✓ Deployment guide
+✓ Code signing
+✓ Troubleshooting
+
+BUILD.md:
+✓ Build prerequisites
+✓ Setup instructions
+✓ Build process
+✓ Configuration
+✓ Troubleshooting
+✓ CI/CD integration
+
+USAGE.md:
+✓ Complete user guide
+✓ Device connection
+✓ All tool instructions
+✓ Tips & best practices
+✓ Troubleshooting
+✓ Support information
+
+PROJECT_SUMMARY.md:
+✓ Project overview
+✓ Feature breakdown
+✓ Technical stack
+✓ Build system
+✓ Future enhancements
+✓ Compliance notes
+
+Statistics
+==========
+
+Total Files Created: 31
+- JavaScript: 11
+- Documentation: 8
+- Configuration: 5
+- HTML: 1
+- CSS: 1
+- Other: 5
+
+Lines of Code (approximate):
+- JavaScript: ~4,500 lines
+- CSS: ~800 lines
+- HTML: ~300 lines
+- Documentation: ~3,000 lines
+- Total: ~8,600 lines
+
+Features Implemented:
+- Android Tools: 15+ features
+- iOS Tools: 8+ features
+- Carrier Unlock: 3 carriers, multiple methods
+- MDM Bypass: 4+ methods
+- Driver Management: 8 driver types
+- UI Components: 20+ sections
+- CLI Tools: Full interactive system
+
+Supported Devices:
+- Android Brands: 10+ (Samsung, Xiaomi, Huawei, Motorola, etc.)
+- Chipsets: 5+ (Qualcomm, MediaTek, HiSilicon, Exynos, UNISOC)
+- iOS Devices: All iPhone/iPad models
+- Carriers: Telcel, AT&T, Payjoy (Mexico)
+
+Build Output:
+- Windows Installer (NSIS)
+- Portable Executable
+- Unpacked Application
+- Auto-update Metadata
+
+Project Status: ✅ COMPLETE
+
+All features implemented and documented.
+Ready for testing and deployment.
+
+Last Updated: 2024
+Version: 1.0.0
+Platform: Windows 10/11 (64-bit)

@@ -1,0 +1,14 @@
+# Drivers directory
+# Device drivers will be downloaded and stored here
+
+Driver packages that can be installed:
+- Android ADB & Fastboot Drivers
+- Samsung USB Drivers
+- Qualcomm QDLoader HS-USB Drivers
+- MediaTek VCOM Drivers
+- Apple Mobile Device Support
+- Huawei HiSuite Drivers
+- LG USB Drivers
+- Motorola Device Manager
+
+The application will manage driver downloads and installations automatically.

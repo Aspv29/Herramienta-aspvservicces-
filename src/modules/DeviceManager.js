@@ -1,5 +1,3 @@
-const adb = require('adbkit');
-const usb = require('usb-detection');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
@@ -7,38 +5,20 @@ const execAsync = promisify(exec);
 
 class DeviceManager {
     constructor() {
-        this.adbClient = adb.createClient();
         this.devices = new Map();
-        this.initializeUSBDetection();
-    }
-
-    initializeUSBDetection() {
-        usb.startMonitoring();
-
-        usb.on('add', (device) => {
-            console.log('Device connected:', device);
-            this.detectDevices();
-        });
-
-        usb.on('remove', (device) => {
-            console.log('Device disconnected:', device);
-            this.detectDevices();
-        });
+        this.pollingInterval = null;
     }
 
     async detectDevices() {
         const detectedDevices = [];
 
         try {
-            // Detect Android devices via ADB
             const adbDevices = await this.detectAndroidDevices();
             detectedDevices.push(...adbDevices);
 
-            // Detect iOS devices
             const iosDevices = await this.detectiOSDevices();
             detectedDevices.push(...iosDevices);
 
-            // Detect devices in Fastboot mode
             const fastbootDevices = await this.detectFastbootDevices();
             detectedDevices.push(...fastbootDevices);
 
@@ -56,46 +36,63 @@ class DeviceManager {
 
     async detectAndroidDevices() {
         try {
-            const devices = await this.adbClient.listDevices();
+            const { stdout } = await execAsync('adb devices -l', { timeout: 10000 });
+            const lines = stdout.trim().split('\n').slice(1).filter(line => line.trim());
             const androidDevices = [];
 
-            for (const device of devices) {
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                const deviceId = parts[0];
+                const state = parts[1];
+
+                if (!deviceId || state === 'offline') continue;
+
                 try {
-                    const properties = await this.getAndroidProperties(device.id);
+                    const properties = await this.getAndroidProperties(deviceId);
                     androidDevices.push({
-                        id: device.id,
+                        id: deviceId,
                         type: 'android',
-                        state: device.type,
-                        brand: properties['ro.product.brand'] || 'Unknown',
+                        state: state,
+                        brand: (properties['ro.product.brand'] || 'Unknown').replace(/^./, c => c.toUpperCase()),
                         model: properties['ro.product.model'] || 'Unknown',
                         manufacturer: properties['ro.product.manufacturer'] || 'Unknown',
                         androidVersion: properties['ro.build.version.release'] || 'Unknown',
                         sdk: properties['ro.build.version.sdk'] || 'Unknown',
                         chipset: this.detectChipset(properties),
-                        serialNumber: properties['ro.serialno'] || device.id,
-                        imei: await this.getIMEI(device.id),
+                        serialNumber: properties['ro.serialno'] || deviceId,
+                        imei: await this.getIMEI(deviceId),
                         bootloader: properties['ro.bootloader'] || 'Unknown',
-                        securityPatch: properties['ro.build.version.security_patch'] || 'Unknown'
+                        securityPatch: properties['ro.build.version.security_patch'] || 'Unknown',
+                        buildNumber: properties['ro.build.display.id'] || 'Unknown',
+                        fingerprint: properties['ro.build.fingerprint'] || 'Unknown'
                     });
                 } catch (error) {
-                    console.error(`Error getting properties for ${device.id}:`, error);
+                    androidDevices.push({
+                        id: deviceId,
+                        type: 'android',
+                        state: state,
+                        brand: 'Unknown',
+                        model: 'Android Device',
+                        manufacturer: 'Unknown',
+                        androidVersion: 'Unknown',
+                        chipset: 'Unknown',
+                        serialNumber: deviceId
+                    });
                 }
             }
 
             return androidDevices;
         } catch (error) {
-            console.error('Error detecting Android devices:', error);
             return [];
         }
     }
 
     async getAndroidProperties(deviceId) {
         try {
+            const { stdout } = await execAsync(`adb -s ${deviceId} shell getprop`, { timeout: 10000 });
             const properties = {};
-            const output = await this.adbClient.shell(deviceId, 'getprop');
-            const lines = output.toString().split('\n');
 
-            lines.forEach(line => {
+            stdout.split('\n').forEach(line => {
                 const match = line.match(/\[(.*?)\]: \[(.*?)\]/);
                 if (match) {
                     properties[match[1]] = match[2];
@@ -104,15 +101,17 @@ class DeviceManager {
 
             return properties;
         } catch (error) {
-            console.error('Error getting Android properties:', error);
             return {};
         }
     }
 
     async getIMEI(deviceId) {
         try {
-            const output = await this.adbClient.shell(deviceId, 'service call iphonesubinfo 1');
-            const imei = output.toString().match(/\d+/g)?.join('').substring(0, 15);
+            const { stdout } = await execAsync(
+                `adb -s ${deviceId} shell service call iphonesubinfo 1`,
+                { timeout: 5000 }
+            );
+            const imei = stdout.match(/\d+/g)?.join('').substring(0, 15);
             return imei || 'Unknown';
         } catch (error) {
             return 'Unknown';
@@ -120,20 +119,22 @@ class DeviceManager {
     }
 
     detectChipset(properties) {
-        const hardware = properties['ro.hardware'] || '';
-        const platform = properties['ro.board.platform'] || '';
-        const soc = properties['ro.soc.model'] || '';
+        const hardware = (properties['ro.hardware'] || '').toLowerCase();
+        const platform = (properties['ro.board.platform'] || '').toLowerCase();
+        const soc = (properties['ro.soc.model'] || '').toLowerCase();
 
-        if (hardware.includes('qcom') || platform.includes('msm') || platform.includes('sdm')) {
+        if (hardware.includes('qcom') || platform.includes('msm') || platform.includes('sdm') || platform.includes('sm')) {
             return 'Qualcomm';
         } else if (hardware.includes('mt') || platform.includes('mt')) {
             return 'MediaTek';
-        } else if (hardware.includes('kirin') || platform.includes('hi')) {
+        } else if (hardware.includes('kirin') || platform.includes('hi') || soc.includes('kirin')) {
             return 'HiSilicon Kirin';
-        } else if (hardware.includes('exynos')) {
+        } else if (hardware.includes('exynos') || platform.includes('exynos')) {
             return 'Samsung Exynos';
-        } else if (platform.includes('unisoc') || platform.includes('sc')) {
+        } else if (platform.includes('unisoc') || platform.includes('sc') || platform.includes('ums')) {
             return 'UNISOC';
+        } else if (platform.includes('tensor')) {
+            return 'Google Tensor';
         }
 
         return 'Unknown';
@@ -141,62 +142,69 @@ class DeviceManager {
 
     async detectiOSDevices() {
         try {
-            const { stdout } = await execAsync('idevice_id -l');
-            const deviceIds = stdout.trim().split('\n').filter(id => id);
+            const { stdout } = await execAsync('idevice_id -l', { timeout: 5000 });
+            const deviceIds = stdout.trim().split('\n').filter(id => id.trim());
 
             const iosDevices = [];
             for (const deviceId of deviceIds) {
                 try {
-                    const { stdout: infoOutput } = await execAsync(`ideviceinfo -u ${deviceId}`);
+                    const { stdout: infoOutput } = await execAsync(
+                        `ideviceinfo -u ${deviceId.trim()}`,
+                        { timeout: 5000 }
+                    );
                     const info = this.parseiOSInfo(infoOutput);
 
                     iosDevices.push({
-                        id: deviceId,
+                        id: deviceId.trim(),
                         type: 'ios',
                         state: 'device',
                         brand: 'Apple',
-                        model: info.ProductType || 'Unknown',
+                        model: info.ProductType || 'iPhone',
                         manufacturer: 'Apple',
                         iosVersion: info.ProductVersion || 'Unknown',
                         serialNumber: info.SerialNumber || 'Unknown',
-                        deviceName: info.DeviceName || 'Unknown',
-                        uniqueDeviceID: info.UniqueDeviceID || deviceId
+                        deviceName: info.DeviceName || 'iPhone',
+                        uniqueDeviceID: info.UniqueDeviceID || deviceId.trim(),
+                        activationState: info.ActivationState || 'Unknown'
                     });
                 } catch (error) {
-                    console.error(`Error getting info for iOS device ${deviceId}:`, error);
+                    iosDevices.push({
+                        id: deviceId.trim(),
+                        type: 'ios',
+                        state: 'device',
+                        brand: 'Apple',
+                        model: 'iPhone',
+                        manufacturer: 'Apple'
+                    });
                 }
             }
 
             return iosDevices;
         } catch (error) {
-            // idevice tools not installed or no iOS devices
             return [];
         }
     }
 
     parseiOSInfo(output) {
         const info = {};
-        const lines = output.split('\n');
-
-        lines.forEach(line => {
+        output.split('\n').forEach(line => {
             const match = line.match(/^(.*?):\s*(.*)$/);
             if (match) {
                 info[match[1].trim()] = match[2].trim();
             }
         });
-
         return info;
     }
 
     async detectFastbootDevices() {
         try {
-            const { stdout } = await execAsync('fastboot devices');
-            const lines = stdout.trim().split('\n').filter(line => line);
+            const { stdout } = await execAsync('fastboot devices', { timeout: 5000 });
+            const lines = stdout.trim().split('\n').filter(line => line.trim());
 
-            return lines.map((line, index) => {
+            return lines.map(line => {
                 const [deviceId] = line.split('\t');
                 return {
-                    id: deviceId,
+                    id: deviceId.trim(),
                     type: 'android',
                     state: 'fastboot',
                     brand: 'Unknown',
@@ -211,7 +219,7 @@ class DeviceManager {
     }
 
     async getDeviceInfo(deviceId) {
-        return this.devices.get(deviceId);
+        return this.devices.get(deviceId) || null;
     }
 
     async rebootDevice(deviceId, mode = 'system') {
@@ -219,21 +227,29 @@ class DeviceManager {
         if (!device) throw new Error('Device not found');
 
         if (device.type === 'android') {
-            const modes = {
-                'system': 'adb reboot',
-                'bootloader': 'adb reboot bootloader',
-                'recovery': 'adb reboot recovery',
-                'fastboot': 'adb reboot bootloader',
-                'download': 'adb reboot download'
-            };
-
-            await execAsync(`${modes[mode] || modes.system} -s ${deviceId}`);
+            if (device.state === 'fastboot') {
+                if (mode === 'system') {
+                    await execAsync(`fastboot -s ${deviceId} reboot`);
+                } else {
+                    await execAsync(`fastboot -s ${deviceId} reboot-${mode}`);
+                }
+            } else {
+                const modes = {
+                    'system': `adb -s ${deviceId} reboot`,
+                    'bootloader': `adb -s ${deviceId} reboot bootloader`,
+                    'recovery': `adb -s ${deviceId} reboot recovery`,
+                    'fastboot': `adb -s ${deviceId} reboot bootloader`,
+                    'download': `adb -s ${deviceId} reboot download`,
+                    'edl': `adb -s ${deviceId} reboot edl`
+                };
+                await execAsync(modes[mode] || modes.system);
+            }
         }
     }
 
     async executeADBCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`);
+            const { stdout, stderr } = await execAsync(`adb -s ${deviceId} ${command}`, { timeout: 30000 });
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
@@ -242,7 +258,7 @@ class DeviceManager {
 
     async executeFastbootCommand(deviceId, command) {
         try {
-            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`);
+            const { stdout, stderr } = await execAsync(`fastboot -s ${deviceId} ${command}`, { timeout: 30000 });
             return { success: true, output: stdout, error: stderr };
         } catch (error) {
             return { success: false, error: error.message };
@@ -250,9 +266,9 @@ class DeviceManager {
     }
 
     cleanup() {
-        usb.stopMonitoring();
-        if (this.adbClient) {
-            this.adbClient.kill();
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
         }
     }
 }

@@ -1,0 +1,54 @@
+{
+  "appId": "com.aspvservices.app",
+  "productName": "AspvServices",
+  "copyright": "Copyright 2026 AspvServices Team",
+  "directories": {
+    "output": "dist",
+    "buildResources": "assets"
+  },
+  "files": [
+    "src/**/*",
+    "assets/**/*",
+    "tools/**/*",
+    "drivers/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "tools/",
+      "to": "tools",
+      "filter": ["**/*"]
+    },
+    {
+      "from": "drivers/",
+      "to": "drivers",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/icon.png",
+    "requestedExecutionLevel": "requireAdministrator",
+    "artifactName": "${productName}-${version}-Setup.${ext}",
+    "publisherName": "AspvServices Team"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "license": "LICENSE.txt",
+    "perMachine": true,
+    "runAfterFinish": true,
+    "shortcutName": "AspvServices"
+  },
+  "publish": null
+}

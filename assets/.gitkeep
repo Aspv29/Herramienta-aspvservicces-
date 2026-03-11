@@ -1,0 +1,7 @@
+# Assets directory
+# Place application icons, images, and other assets here
+
+Required files for building:
+- icon.ico (256x256 application icon)
+- icon.png (1024x1024 PNG version)
+- installer-header.bmp (for NSIS installer)
