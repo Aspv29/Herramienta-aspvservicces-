@@ -1,0 +1,107 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 2.0.0)'
+        required: true
+        default: '2.0.0'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update package version
+        shell: bash
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
+            pkg.version = process.env.VERSION;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Build Windows installer
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List dist directory
+        shell: bash
+        run: ls -la dist/
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AspvServices-${{ steps.get_version.outputs.VERSION }}-Setup
+          path: dist/*.exe
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: AspvServices v${{ steps.get_version.outputs.VERSION }}
+          body: |
+            ## AspvServices v${{ steps.get_version.outputs.VERSION }} - Herramienta Profesional de Servicio
+
+            ### Instalacion
+            1. Descarga `AspvServices-${{ steps.get_version.outputs.VERSION }}-Setup.exe`
+            2. Ejecuta como **Administrador**
+            3. Sigue el asistente de instalacion
+            4. Lanza desde el acceso directo en el escritorio
+
+            ### Funciones incluidas
+            - FRP Bypass (Samsung, Xiaomi, Huawei, Motorola, Oppo, Vivo, Realme, Tecno, Infinix, LG)
+            - Screen Lock Removal
+            - Firmware Flash (Qualcomm, MediaTek, UNISOC, Exynos)
+            - MDM/Knox Removal
+            - IMEI Repair
+            - Mi Account Bypass
+            - Bootloader Unlock/Lock
+            - iCloud Bypass & Jailbreak (iOS)
+            - Desbloqueo de operador (Telcel, AT&T, Payjoy - Mexico)
+            - Gestion de Drivers
+            - Terminal ADB/Fastboot integrada
+
+            ### Requisitos
+            - Windows 10/11 (64-bit)
+            - 4 GB RAM minimo
+            - 500 MB espacio libre
+            - Permisos de Administrador
+          files: dist/*.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
